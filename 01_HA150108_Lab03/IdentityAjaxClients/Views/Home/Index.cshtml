@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+<div class="text-center">
+@Html.AntiForgeryToken()
+    <div class="container-fluid">
+        <h2>Product List</h2>
+        <table class="table table-sm table-striped table-bordered m-2" id="myTable">
+            <thead>
+                <tr>
+                    <th>ProductID</th>
+                    <th>ProductName</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        ShowAllProducts();
+        // Fetch data from the server and populate the table
+
+        //////////////Start ShowAllProducts()/////////
+        function ShowAllProducts() {
+            $.ajax({
+                url: 'https://localhost:7207/api/ProductsControllers', // Replace with the actual URL that provides the data
+                type: 'GET',
+                contentType: 'application/json;charset=utf-8',
+                dataType: 'json',
+                success: function (result) {
+                    $.each(result, function (index, value) {
+                        var newRow = "<tr><td>"
+                            + value.productId + "</td><td>"
+                            + value.productName + "</td><td>"
+                            + value.unitsInStock + "</td><td>"
+                            + value.unitPrice + "</td><td><a href='\?id=" + value.productId + "'>Update</a></td>"
+                            + "<td><a class='delete-btn'  href='\?id=" + value.productId + "'>Delete</a></td></tr>";
+                        $('#myTable tbody').append(newRow);
+                    });
+                },
+                error: function () {
+                    alert('Error occurred while fetching data.');
+                }
+            });
+        }
+        //////////////End ShowAllProducts()/////////
+
+        $('#myTable').on('click', '.delete-btn', function () {
+            var productId = $(this).parents("tr").find("td:nth-child(1)").text();
+            var csrfToken = $("input[name='__RequestVerificationToken']").val();
+
+            if (confirm('Are you sure you want to delete this record?')) {
+              
+                $.ajax({
+                    headers: { __RequestVerificationToken: csrfToken },
+                    url: 'https://localhost:7207/api/ProductsControllers/' + productId, // Replace with the actual delete endpoint URL
+                    type: 'delete',
+                    contentType: 'application/json',
+                    success: function (result) {
+                        alert('Record deleted successfully.');
+                        ShowAllProducts();
+                        // Perform any necessary update or refresh operations
+                    },
+                    error: function () {
+                        alert('Error occurred while deleting the record.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+
